@@ -12,6 +12,7 @@ type Plug struct {
 	ViewsRemaining int
 	Approved       bool
 	PresignedURL   string
+    Shape          string
 }
 
 type PlugList struct {

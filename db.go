@@ -30,9 +30,9 @@ message         TEXT NOT NULL
 );`
 
 const SQL_CREATE_PLUG = `INSERT into plugs (s3id, owner, views, approved, shape)
-VALUES ($1::text, $2::text, $3::integer, false)`
+VALUES ($1::text, $2::text, $3::integer, false, $4::text)`
 
-const SQL_RETRIEVE_APPROVED_PLUGS = `SELECT id, s3id, owner, views FROM plugs WHERE approved=true AND shape='banner'`
+const SQL_RETRIEVE_APPROVED_PLUGS = `SELECT id, s3id, owner, views FROM plugs WHERE approved=true`
 
 const SQL_RETRIEVE_APPROVED_VERT_PLUGS = `SELECT id, s3id, owner, views FROM plugs WHERE approved=true AND shape='vert'`
 
@@ -243,6 +243,7 @@ func (c DBConnection) MakePlug(plug Plug) {
 		plug.S3ID,
 		plug.Owner,
 		plug.ViewsRemaining,
+        plug.Shape,
 	)
 	if err != nil {
 		log.Error(err)
