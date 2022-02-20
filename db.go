@@ -19,7 +19,8 @@ id              SERIAL PRIMARY KEY,
 s3id            VARCHAR(64) NOT NULL,
 owner           VARCHAR(32) NOT NULL,
 views           INTEGER NOT NULL,
-approved        BOOLEAN NOT NULL
+approved        BOOLEAN NOT NULL,
+shape           TEXT    NOT NULL
 );`
 
 const SQL_CREATE_LOG_TABLE = `CREATE TABLE logs (
@@ -28,10 +29,12 @@ severity        INTEGER NOT NULL,
 message         TEXT NOT NULL
 );`
 
-const SQL_CREATE_PLUG = `INSERT into plugs (s3id, owner, views, approved)
+const SQL_CREATE_PLUG = `INSERT into plugs (s3id, owner, views, approved, shape)
 VALUES ($1::text, $2::text, $3::integer, false)`
 
-const SQL_RETRIEVE_APPROVED_PLUGS = `SELECT id, s3id, owner, views FROM plugs WHERE approved=true`
+const SQL_RETRIEVE_APPROVED_PLUGS = `SELECT id, s3id, owner, views FROM plugs WHERE approved=true AND shape='banner'`
+
+const SQL_RETRIEVE_APPROVED_VERT_PLUGS = `SELECT id, s3id, owner, views FROM plugs WHERE approved=true AND shape='vert'`
 
 const SQL_RETRIEVE_PLUG_BY_ID = `SELECT s3id, owner, views, approved FROM plugs WHERE id=$1::integer`
 
@@ -87,8 +90,15 @@ func (c DBConnection) create_table_safe(name, sql string) {
 	}
 }
 
-func (c DBConnection) GetPlug() Plug {
-	rows, err := c.con.Query(SQL_RETRIEVE_APPROVED_PLUGS)
+func (c DBConnection) GetPlug(shape string) Plug {
+    var rows *sql.Rows
+    var err error
+    switch shape {
+    case "banner":
+	    rows, err = c.con.Query(SQL_RETRIEVE_APPROVED_PLUGS)
+    case "vert":
+	    rows, err = c.con.Query(SQL_RETRIEVE_APPROVED_VERT_PLUGS)
+    }
 
 	if err != nil {
 		log.Fatal(err)
@@ -118,7 +128,7 @@ func (c DBConnection) GetPlug() Plug {
 	if finalPlug.ViewsRemaining == 0 {
 		c.DeletePlug(finalPlug)
 		// try again
-		return c.GetPlug()
+		return c.GetPlug("banner")
 	}
 
 	return finalPlug

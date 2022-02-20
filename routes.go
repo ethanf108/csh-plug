@@ -32,7 +32,7 @@ func (r PlugRoutes) index(c *gin.Context) {
 }
 
 func (r PlugRoutes) action(c *gin.Context) {
-	plug := r.app.db.GetPlug()
+	plug := r.app.db.GetPlug("banner")
 	url := r.app.s3.PresignPlug(plug)
 
 	claims, ok := c.Value(csh_auth.AuthKey).(csh_auth.CSHClaims)
@@ -49,6 +49,26 @@ func (r PlugRoutes) action(c *gin.Context) {
 	r.app.db.AddLog(13, c.GetHeader("Referer"))
 	c.Redirect(http.StatusFound, url.String())
 }
+
+func (r PlugRoutes) vert_action(c *gin.Context) {
+	plug := r.app.db.GetPlug("vert")
+	url := r.app.s3.PresignPlug(plug)
+
+	claims, ok := c.Value(csh_auth.AuthKey).(csh_auth.CSHClaims)
+	if !ok {
+		log.Fatal("error finding claims")
+		return
+	}
+	log.WithFields(log.Fields{
+		"uid":           claims.UserInfo.Username,
+		"plug_id":       plug.ID,
+		"plug_s3id":     plug.S3ID,
+		"presigned_uri": url.String(),
+	}).Info("Presigned URI Generated")
+	r.app.db.AddLog(13, c.GetHeader("Referer"))
+	c.Redirect(http.StatusFound, url.String())
+}
+
 
 func (r PlugRoutes) upload(c *gin.Context) {
 	plug := Plug{}
