@@ -103,9 +103,9 @@ func (r PlugRoutes) upload(c *gin.Context) {
 	}
 	data.Seek(0, 0)
 	if imageData.Width == 728 && imageData.Height == 200 {
-        plug.Shape = "banner";
+        plug.Shape = "banner"
 	} else if imageData.Width == 200 && imageData.Height == 728 {
-        plug.Shape = "vert";
+        plug.Shape = "vert"
     } else {
 		log.Error("invalid file dimensions")
 		c.String(http.StatusBadRequest, "Please upload a 728x200 pixel image!")

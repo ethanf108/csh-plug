@@ -38,7 +38,7 @@ const SQL_RETRIEVE_APPROVED_VERT_PLUGS = `SELECT id, s3id, owner, views FROM plu
 
 const SQL_RETRIEVE_PLUG_BY_ID = `SELECT s3id, owner, views, approved FROM plugs WHERE id=$1::integer`
 
-const SQL_RETRIEVE_PENDING_PLUGS = `SELECT id, s3id, owner, views, approved FROM plugs WHERE views>=0`
+const SQL_RETRIEVE_PENDING_PLUGS = `SELECT id, s3id, owner, views, approved, shape FROM plugs WHERE views>=0`
 
 const SQL_SET_PENDING_PLUGS = `UPDATE plugs
 SET approved = true
@@ -177,7 +177,7 @@ func (c DBConnection) GetPendingPlugs() []Plug {
 	var plugs []Plug
 	for rows.Next() {
 		var obj Plug
-		err = rows.Scan(&obj.ID, &obj.S3ID, &obj.Owner, &obj.ViewsRemaining, &obj.Approved)
+		err = rows.Scan(&obj.ID, &obj.S3ID, &obj.Owner, &obj.ViewsRemaining, &obj.Approved, &obj.Shape)
 
 		if err != nil {
 			log.Error(err)
@@ -198,7 +198,7 @@ func (c DBConnection) GetUserPlugs(user string) []Plug {
 	var plugs []Plug
 	for rows.Next() {
 		var obj Plug
-		err = rows.Scan(&obj.ID, &obj.S3ID, &obj.Owner, &obj.ViewsRemaining, &obj.Approved)
+		err = rows.Scan(&obj.ID, &obj.S3ID, &obj.Owner, &obj.ViewsRemaining, &obj.Approved, &obj.Shape)
 
 		if err != nil {
 			log.Error(err)
