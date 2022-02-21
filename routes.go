@@ -32,7 +32,27 @@ func (r PlugRoutes) index(c *gin.Context) {
 }
 
 func (r PlugRoutes) action(c *gin.Context) {
-	plug := r.app.db.GetPlug()
+	plug := r.app.db.GetPlug("banner")
+	url := r.app.s3.PresignPlug(plug)
+
+	claims, ok := c.Value(csh_auth.AuthKey).(csh_auth.CSHClaims)
+	if !ok {
+		log.Fatal("error finding claims")
+		return
+	}
+	log.WithFields(log.Fields{
+		"uid":           claims.UserInfo.Username,
+		"plug_id":       plug.ID,
+		"plug_s3id":     plug.S3ID,
+		"presigned_uri": url.String(),
+	}).Info("Presigned URI Generated")
+	r.app.db.AddLog(13, c.GetHeader("Referer"))
+	c.Redirect(http.StatusFound, url.String())
+}
+
+// TODO (willnilges): De-duplicate code please
+func (r PlugRoutes) vert_action(c *gin.Context) {
+	plug := r.app.db.GetPlug("vert")
 	url := r.app.s3.PresignPlug(plug)
 
 	claims, ok := c.Value(csh_auth.AuthKey).(csh_auth.CSHClaims)
@@ -82,36 +102,41 @@ func (r PlugRoutes) upload(c *gin.Context) {
 	}
 	data.Seek(0, 0)
 	if imageData.Width == 728 && imageData.Height == 200 {
-		numCredits, err := strconv.Atoi(c.PostForm("numCredits"))
-		if err != nil {
-			log.Error(err)
-			c.String(http.StatusUnsupportedMediaType, "Specify numCredits")
-			return
-		}
-		if numCredits < 0 {
-			log.Error(err)
-			c.String(http.StatusBadRequest, "Can't specify negative credits!")
-			return
-		}
-		mime := getMime(data)
-		data.Seek(0, 0)
-
-		if !r.app.ldap.DecrementCredits(plug.Owner, numCredits) {
-			c.String(http.StatusPaymentRequired, "Get More Credits!")
-			return
-		}
-
-		plug.ViewsRemaining = numCredits * PlugValueInDrinkCredits(r.app.ldap, claims.UserInfo.Username)
-
-		plug.S3ID = time.Now().Format("2006/01/02/150405") + "-" + plug.Owner + "-" + file.Filename
-		r.app.s3.AddFile(plug, data, mime)
-
-		r.app.db.MakePlug(plug)
+		plug.Shape = "banner"
+	} else if imageData.Width == 200 && imageData.Height == 728 {
+		plug.Shape = "vert"
 	} else {
 		log.Error("invalid file dimensions")
 		c.String(http.StatusBadRequest, "Please upload a 728x200 pixel image!")
 		return
 	}
+
+	numCredits, err := strconv.Atoi(c.PostForm("numCredits"))
+	if err != nil {
+		log.Error(err)
+		c.String(http.StatusUnsupportedMediaType, "Specify numCredits")
+		return
+	}
+	if numCredits < 0 {
+		log.Error(err)
+		c.String(http.StatusBadRequest, "Can't specify negative credits!")
+		return
+	}
+	mime := getMime(data)
+	data.Seek(0, 0)
+
+	if !r.app.ldap.DecrementCredits(plug.Owner, numCredits) {
+		c.String(http.StatusPaymentRequired, "Get More Credits!")
+		return
+	}
+
+	plug.ViewsRemaining = numCredits * PlugValueInDrinkCredits(r.app.ldap, claims.UserInfo.Username)
+
+	plug.S3ID = time.Now().Format("2006/01/02/150405") + "-" + plug.Owner + "-" + file.Filename
+	r.app.s3.AddFile(plug, data, mime)
+
+	r.app.db.MakePlug(plug)
+
 	r.app.db.AddLog(1, "uid: "+plug.Owner+"uploaded plug s3id"+plug.S3ID)
 	c.HTML(http.StatusOK, "success.tmpl", gin.H{
 		"plug_s3url": r.app.s3.PresignPlug(plug).String(),
