@@ -91,14 +91,14 @@ func (c DBConnection) create_table_safe(name, sql string) {
 }
 
 func (c DBConnection) GetPlug(shape string) Plug {
-    var rows *sql.Rows
-    var err error
-    switch shape {
-    case "banner":
-	    rows, err = c.con.Query(SQL_RETRIEVE_APPROVED_PLUGS)
-    case "vert":
-	    rows, err = c.con.Query(SQL_RETRIEVE_APPROVED_VERT_PLUGS)
-    }
+	var rows *sql.Rows
+	var err error
+	switch shape {
+	case "banner":
+		rows, err = c.con.Query(SQL_RETRIEVE_APPROVED_PLUGS)
+	case "vert":
+		rows, err = c.con.Query(SQL_RETRIEVE_APPROVED_VERT_PLUGS)
+	}
 
 	if err != nil {
 		log.Fatal(err)
@@ -243,7 +243,7 @@ func (c DBConnection) MakePlug(plug Plug) {
 		plug.S3ID,
 		plug.Owner,
 		plug.ViewsRemaining,
-        plug.Shape,
+		plug.Shape,
 	)
 	if err != nil {
 		log.Error(err)

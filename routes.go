@@ -70,7 +70,6 @@ func (r PlugRoutes) vert_action(c *gin.Context) {
 	c.Redirect(http.StatusFound, url.String())
 }
 
-
 func (r PlugRoutes) upload(c *gin.Context) {
 	plug := Plug{}
 
@@ -103,40 +102,40 @@ func (r PlugRoutes) upload(c *gin.Context) {
 	}
 	data.Seek(0, 0)
 	if imageData.Width == 728 && imageData.Height == 200 {
-        plug.Shape = "banner"
+		plug.Shape = "banner"
 	} else if imageData.Width == 200 && imageData.Height == 728 {
-        plug.Shape = "vert"
-    } else {
+		plug.Shape = "vert"
+	} else {
 		log.Error("invalid file dimensions")
 		c.String(http.StatusBadRequest, "Please upload a 728x200 pixel image!")
 		return
 	}
 
-    numCredits, err := strconv.Atoi(c.PostForm("numCredits"))
-    if err != nil {
-        log.Error(err)
-        c.String(http.StatusUnsupportedMediaType, "Specify numCredits")
-        return
-    }
-    if numCredits < 0 {
-        log.Error(err)
-        c.String(http.StatusBadRequest, "Can't specify negative credits!")
-        return
-    }
-    mime := getMime(data)
-    data.Seek(0, 0)
+	numCredits, err := strconv.Atoi(c.PostForm("numCredits"))
+	if err != nil {
+		log.Error(err)
+		c.String(http.StatusUnsupportedMediaType, "Specify numCredits")
+		return
+	}
+	if numCredits < 0 {
+		log.Error(err)
+		c.String(http.StatusBadRequest, "Can't specify negative credits!")
+		return
+	}
+	mime := getMime(data)
+	data.Seek(0, 0)
 
-    if !r.app.ldap.DecrementCredits(plug.Owner, numCredits) {
-        c.String(http.StatusPaymentRequired, "Get More Credits!")
-        return
-    }
+	if !r.app.ldap.DecrementCredits(plug.Owner, numCredits) {
+		c.String(http.StatusPaymentRequired, "Get More Credits!")
+		return
+	}
 
-    plug.ViewsRemaining = numCredits * PlugValueInDrinkCredits(r.app.ldap, claims.UserInfo.Username)
+	plug.ViewsRemaining = numCredits * PlugValueInDrinkCredits(r.app.ldap, claims.UserInfo.Username)
 
-    plug.S3ID = time.Now().Format("2006/01/02/150405") + "-" + plug.Owner + "-" + file.Filename
-    r.app.s3.AddFile(plug, data, mime)
+	plug.S3ID = time.Now().Format("2006/01/02/150405") + "-" + plug.Owner + "-" + file.Filename
+	r.app.s3.AddFile(plug, data, mime)
 
-    r.app.db.MakePlug(plug)
+	r.app.db.MakePlug(plug)
 
 	r.app.db.AddLog(1, "uid: "+plug.Owner+"uploaded plug s3id"+plug.S3ID)
 	c.HTML(http.StatusOK, "success.tmpl", gin.H{
