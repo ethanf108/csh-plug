@@ -39,7 +39,13 @@
                 <div class="col-lg-7">
                     <div class="card mb-3">
                         <h3 class="card-header">Uploaded By: {{$element.Owner}}</h3>
+                        {{ if eq $element.Shape "vert" }} 
+                        <div style="display: flex; justify-content: center;">
+                        {{ end }}
                         <img class="{{$element.Shape}}" src="{{$element.PresignedURL}}" alt="Plug by {{$element.Owner}}">
+                        {{ if eq $element.Shape "vert" }}
+                        </div>
+                        {{ end }}
                         <div class="card-footer text-muted">
                             <input type="checkbox" name="plugs[]" value="{{$element.ID}}" id="{{$element.ID}}" {{ if $element.Approved }} checked {{ end }}/>
                             <label for="{{$element.ID}}">Approved for Viewing</label> ({{$element.ViewsRemaining}} Remaining)

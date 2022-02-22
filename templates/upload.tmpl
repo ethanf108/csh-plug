@@ -30,10 +30,18 @@
         <div class="row justify-content-center">
             <div class="col-lg-7">
                 <div class="card mb-3">
+
+                    {{ if eq $element.Shape "vert" }} 
+                    <div style="display: flex; justify-content: center;">
+                    {{ end }}
+
                     <!-- Make plugs which haven't been approved yet grayscale -->
-                    <img style="width: 100%; display: block;
+                    <img class="{{$element.Shape}}" style="
                     {{ if not $element.Approved }} filter: grayscale(100%); {{ end }}
                     " src="{{$element.PresignedURL}}" alt="Plug by {{$element.Owner}}">
+                    {{ if eq $element.Shape "vert" }}
+                    </div>
+                    {{ end }}
                     <div class="card-footer text-muted">
                         <p>{{$element.ViewsRemaining}} View(s) Remaining</p>
                     </div>
@@ -46,7 +54,7 @@
         <div class="row justify-content-center">
             <div class="col-lg-7">
                 <h2>Upload a Plug!</h2>
-                <p class="lead">You will lose 1 drink credit in exchange for a {{ .plug_value }} view-limit of your plug.<br> Plugs must be 728x200 pixels and in PNG, or JPG format</p>
+                <p class="lead">You will lose 1 drink credit in exchange for a {{ .plug_value }} view-limit of your plug.<br> Banner Plugs must be 728x200 pixels. <br> Vertical Plugs must be 200x728 pixels. <br> Plugs must be in PNG, or JPG format.</p>
                 <hr class="my-4">
 
                 <form action="/upload" method="post" enctype="multipart/form-data">
