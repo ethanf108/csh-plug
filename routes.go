@@ -7,6 +7,7 @@ import (
 	"image"
 	_ "image/jpeg"
 	_ "image/png"
+    _ "image/gif"
 	"io"
 	"net/http"
 	"strconv"
