@@ -118,9 +118,9 @@ func (r PlugRoutes) upload(c *gin.Context) {
 		c.String(http.StatusUnsupportedMediaType, "Specify numCredits")
 		return
 	}
-	if numCredits < 0 {
+	if numCredits < 1 {
 		log.Error(err)
-		c.String(http.StatusBadRequest, "Can't specify negative credits!")
+		c.String(http.StatusBadRequest, "Must specify 1 or more credits!")
 		return
 	}
 	mime := getMime(data)
