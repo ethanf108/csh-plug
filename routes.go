@@ -54,9 +54,7 @@ func (r PlugRoutes) action(c *gin.Context) {
 
 func (r PlugRoutes) actionPXE(c *gin.Context) {
 
-	log.Info(c.GetHeader("X-PXE-Secret"))
-	log.Info(os.Getenv("csh_plug_pxe_secret"))
-	if c.GetHeader("X-PXE-Secret") != os.Getenv("csh_plug_pxe_secret") {
+	if c.GetHeader("X-PXE-Secret") != os.Getenv("CSH_PLUG_PXE_SECRET") {
 		log.Info("Invalid PXE Secret")
 		return
 	}
